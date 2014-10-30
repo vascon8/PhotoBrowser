@@ -6,11 +6,15 @@
 
 #import <UIKit/UIKit.h>
 
+@class LXLoadingProgressView;
+
 @interface LXLoadingView : UIView
 
 + (instancetype)loadingView;
 
-@property (assign,nonatomic) CGFloat progress;
+@property (nonatomic) float progress;
+
 - (void)showLoading;
+- (void)showFailure;
 
 @end

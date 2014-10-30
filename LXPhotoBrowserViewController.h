@@ -19,7 +19,8 @@
 @interface LXPhotoBrowserViewController : UIViewController
 
 @property (weak,nonatomic) id<LXPhotoBrowserViewControllerDelegate>delegate;
+@property (weak,nonatomic) UIScrollView *originScrollView;
 
-- (void)showPhotoBrowserInRect:(CGRect)rect withPhotoList:(NSArray *)photoList photoIndex:(NSInteger)photoIndex;
+- (void)showPhotoBrowserInRect:(CGRect)rect withPhotoList:(NSArray *)photoList photoIndex:(NSInteger)photoIndex originView:(UIView *)originView;
 
 @end

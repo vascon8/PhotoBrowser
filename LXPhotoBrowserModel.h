@@ -12,9 +12,13 @@
 
 //download image
 @property (strong,nonatomic) UIImage *image;
+@property (assign,nonatomic) NSInteger index;
+@property (strong,nonatomic) UIImage *placeHolder;
+@property (strong,nonatomic) UIImage *capture;
+
+@property (assign,nonatomic) BOOL   save;
 
 + (instancetype)photoBrowserModelWithDict:(NSDictionary *)dict;
 - (CGRect)srcFrame;
-- (UIImage *)placeHolder;
 
 @end

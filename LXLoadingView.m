@@ -10,6 +10,7 @@
 @interface LXLoadingView ()
 
 @property (weak,nonatomic) LXLoadingProgressView *progressView;
+@property (weak,nonatomic) UILabel               *failureLabel;
 
 @end
 
@@ -18,6 +19,7 @@
 {
     if(self = [super init]){
         self.frame = [UIScreen mainScreen].applicationFrame;
+        self.progress = 0.0;
     }
     return self;
 }
@@ -28,20 +30,47 @@
 - (void)showLoading
 {
     if (!_progressView) {
-        LXLoadingProgressView *progrssView = [LXLoadingProgressView progressView];
-        progrssView.bounds = CGRectMake(0.0, 0.0, 80.0, 80.0);
-        progrssView.center = self.center;
-        self.progressView = progrssView;
-        [self addSubview:progrssView];
+        LXLoadingProgressView *progressView = [LXLoadingProgressView progressView];
+        progressView.bounds = CGRectMake(0.0, 0.0, 80.0, 80.0);
+        progressView.center = self.center;
+        [self addSubview:progressView];
+        _progressView = progressView;
     }
-    _progressView.progress = kLoadingProgressBeginValue;
+    
+    self.progress = kLoadingProgressBeginValue;
 }
-- (void)setProgress:(CGFloat)progress
+- (void)setProgress:(float)progress
 {
     _progress = progress;
-    _progressView.progress = progress;
-    if (progress >= 1.0) {
-        [self.progressView removeFromSuperview];
+    if (_progressView) {
+        _progressView.progress = _progress;
     }
 }
+- (void)removeProgressView
+{
+    [self.progressView removeFromSuperview];
+}
+- (void)removeFailureLabel
+{
+    [self.failureLabel removeFromSuperview];
+}
+- (void)showFailure
+{
+    [self performSelector:@selector(removeProgressView) withObject:Nil afterDelay:0.5];
+    UILabel *label = [[UILabel alloc]init];
+    label.bounds = CGRectMake(0.0, 0.0, self.bounds.size.width, 20.0);
+    label.center = self.center;
+    [label setBackgroundColor:[UIColor clearColor]];
+    [label setTextColor:[UIColor whiteColor]];
+    [label setTextAlignment:NSTextAlignmentCenter];
+    [label setFont:[UIFont systemFontOfSize:18.0]];
+    
+    label.text = @"网络不给力，图片加载失败!";
+    
+    [self addSubview:label];
+    self.failureLabel = label;
+    
+    [self performSelector:@selector(removeFailureLabel) withObject:Nil afterDelay:3.0];
+}
+
 @end

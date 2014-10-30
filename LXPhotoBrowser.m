@@ -1,6 +1,4 @@
 //
-//  LXPhotoBrowser.m
-//  0926新浪微博
 //
 //  Created by xinliu on 14-10-19.
 //  Copyright (c) 2014年 xinliu. All rights reserved.
@@ -9,11 +7,14 @@
 #import "LXPhotoBrowser.h"
 #import "LXPhotoBrowserView.h"
 #import "LXPhotoBrowserModel.h"
-
 @interface LXPhotoBrowser () <LXPhotoBrowserViewDelegate,UIScrollViewDelegate>
 
-@property (strong,nonatomic) NSMutableDictionary    *visiblePhotoBrowserViewDict;
-@property (strong,nonatomic) NSMutableSet           *reuseablePhotoBrowserViewSet;
+{
+    NSMutableDictionary *_visiblePhotoBrowserViewDict;
+    NSMutableSet        *_reuseablePhotoBrowserViewSet;
+}
+
+@property (weak,nonatomic) LXPhotoBrowserView       *zoomView;
 
 @end
 
@@ -23,49 +24,39 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
+        
         self.showsVerticalScrollIndicator = NO;
         self.pagingEnabled = YES;
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tap:)];
-        [self addGestureRecognizer:tap];
     }
     return self;
 }
-#pragma mark -exit PhotoBrowser
-- (void)tap:(UITapGestureRecognizer *)recognizer
-{
-    LXPhotoBrowserView *pView = self.visiblePhotoBrowserViewDict[@(_currentIndex)];
-    
-    if (pView.isLoading) {
-        [self removeFromSuperview];
-        if ([self.delegate respondsToSelector:@selector(photoBrowserDidExit:)]) {
-            [self.delegate photoBrowserDidExit:self];
-        }
-        return;
-    }
-
-    [UIView animateWithDuration:0.4f animations:^{
-        [pView.imgView setFrame:pView.photoModel.srcFrame];
-        [pView setBackgroundColor:[UIColor clearColor]];
-        [self setBackgroundColor:[UIColor clearColor]];
-    } completion:^(BOOL finished) {
-        [self removeFromSuperview];
-        if ([self.delegate respondsToSelector:@selector(photoBrowserDidExit:)]) {
-            [self.delegate photoBrowserDidExit:self];
-        }
-    }];
-}
 #pragma mark - show photo
+- (void)showPhoto
+{
+    LXPhotoBrowserView *pView = [[LXPhotoBrowserView alloc]init];
+    pView.delegate = self;
+    [self addSubview:pView];
+    self.zoomView = pView;
+    _currentIndex = 0;
+    
+    CGFloat W = self.bounds.size.width;
+    CGFloat H = self.bounds.size.height;
+    CGRect frame = CGRectMake(0.0, 0.0, W, H);
+    pView.frame = frame;
+    pView.isAnimation = YES;
+    pView.photoModel = _photoList[0];
+}
 - (void)showPhotoAtPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation
 {
-    LXPhotoBrowserView *pView = self.visiblePhotoBrowserViewDict[@(pageNo)];
+    LXPhotoBrowserView *pView = _visiblePhotoBrowserViewDict[@(pageNo)];
     if (!pView) {
         pView = [self dequeueReusablePhotoBrowserView];
         [self addSubview:pView];
-        [self.visiblePhotoBrowserViewDict setObject:pView forKey:@(pageNo)];
+        [_visiblePhotoBrowserViewDict setObject:pView forKey:@(pageNo)];
         
         CGFloat W = self.bounds.size.width;
         CGFloat H = self.bounds.size.height;
-        CGRect frame = CGRectMake(W*pageNo, 0, W, H);
+        CGRect frame = CGRectMake(W*pageNo, 0.0, W, H);
         pView.frame = frame;
         pView.isAnimation = isAnimation;
         pView.photoModel = _photoList[pageNo];
@@ -74,24 +65,24 @@
 #pragma mark - reuse photoBrowserView
 - (LXPhotoBrowserView *)dequeueReusablePhotoBrowserView
 {
-    LXPhotoBrowserView *pView = [self.reuseablePhotoBrowserViewSet anyObject];
+    LXPhotoBrowserView *pView = [_reuseablePhotoBrowserViewSet anyObject];
     if (!pView) {
         pView = [[LXPhotoBrowserView alloc]init];
         pView.delegate = self;
     }
     else{
-        [self.reuseablePhotoBrowserViewSet removeObject:pView];
+        [_reuseablePhotoBrowserViewSet removeObject:pView];
     }
     return pView;
 }
 - (void)enqueueReuseablePhotoBrowserViewWithCurrengPage:(NSInteger)currentPage
 {
-    _currentIndex = currentPage;
+    self.currentIndex = currentPage;
     
     [_visiblePhotoBrowserViewDict enumerateKeysAndObjectsUsingBlock:^(id key,LXPhotoBrowserView *pView, BOOL *stop) {
         if (![key isEqualToValue:@(currentPage)]) {
-            [self.reuseablePhotoBrowserViewSet addObject:pView];
-            [self.visiblePhotoBrowserViewDict removeObjectForKey:key];
+            [_reuseablePhotoBrowserViewSet addObject:pView];
+            [_visiblePhotoBrowserViewDict removeObjectForKey:key];
             [pView removeFromSuperview];
         }
     }];
@@ -101,27 +92,72 @@
 {
     CGRect srcFrame = photoBrowserView.photoModel.srcFrame;
     photoBrowserView.imgView.frame = srcFrame;
-    [self setBackgroundColor:[UIColor clearColor]];
     
-    [UIView animateWithDuration:0.4f animations:^{
+    [UIView animateWithDuration:kPhotoBrowserViewAniShowDur animations:^{
         photoBrowserView.imgView.frame = frame;
-        [self setBackgroundColor:[UIColor lightGrayColor]];
+    } completion:^(BOOL finished) {
+        photoBrowserView.photoModel.srcImageView.image = photoBrowserView.photoModel.placeHolder;
     }];
 }
-#pragma mark - private
-- (NSMutableDictionary *)visiblePhotoBrowserViewDict
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
-    if (!_visiblePhotoBrowserViewDict) {
-        _visiblePhotoBrowserViewDict = [NSMutableDictionary dictionary];
+    if (_photoList.count == 1) {
+        return _zoomView.imgView;
     }
-    return _visiblePhotoBrowserViewDict;
+    else{
+        LXPhotoBrowserView *pView = _visiblePhotoBrowserViewDict[@(_currentIndex)];
+        return pView.imgView;
+    }
 }
-- (NSMutableSet *)reuseablePhotoBrowserViewSet
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
 {
-    if (!_reuseablePhotoBrowserViewSet) {
-        _reuseablePhotoBrowserViewSet = [NSMutableSet set];
+    self.scrollEnabled = !self.scrollEnabled;
+}
+- (void)photoBrowserViewDidExit:(LXPhotoBrowserView *)photoBrowserView
+{
+    if ([self.delegate respondsToSelector:@selector(photoBrowserBeforeExit:)]) {
+        [self.delegate photoBrowserBeforeExit:self];
     }
-    return _reuseablePhotoBrowserViewSet;
+    [photoBrowserView.loadingView removeFromSuperview];
+    
+    if (photoBrowserView.isLoading) {
+        [photoBrowserView removeFromSuperview];
+        [self removeFromSuperview];
+        if ([self.delegate respondsToSelector:@selector(photoBrowserDidExit:)]) {
+            [self.delegate photoBrowserDidExit:self];
+        }
+        return;
+    }
+    
+    [photoBrowserView.imgView setContentMode:photoBrowserView.photoModel.srcImageView.contentMode];
+    photoBrowserView.imgView.clipsToBounds = photoBrowserView.photoModel.srcImageView.clipsToBounds;
+    
+    [UIView animateWithDuration:kPhotoBrowserViewAniExitDur animations:^{
+        [photoBrowserView.imgView setImage:photoBrowserView.photoModel.srcImageView.image];
+        [photoBrowserView.imgView setFrame:[photoBrowserView.photoModel.srcImageView convertRect:photoBrowserView.photoModel.srcImageView.bounds toView:photoBrowserView]];
+        [self setBackgroundColor:[UIColor clearColor]];
+    } completion:^(BOOL finished) {
+        [photoBrowserView removeFromSuperview];
+        [self removeFromSuperview];
+        if ([self.delegate respondsToSelector:@selector(photoBrowserDidExit:)]) {
+            [self.delegate photoBrowserDidExit:self];
+        }
+    }];
 }
 
+#pragma mark - private
+- (void)setPhotoList:(NSArray *)photoList
+{
+    _photoList = photoList;
+    
+    if (photoList.count > 1) {
+        _visiblePhotoBrowserViewDict = [NSMutableDictionary dictionaryWithCapacity:2];
+        _reuseablePhotoBrowserViewSet = [NSMutableSet setWithCapacity:1];
+    }
+    
+    for (int i=0; i<photoList.count; i++) {
+        LXPhotoBrowserModel *model = photoList[i];
+        model.index = i;
+    }
+}
 @end

@@ -6,14 +6,14 @@
 
 #import <UIKit/UIKit.h>
 
-#define kLoadingProgressBeginValue 0.001f
+#define kLoadingProgressBeginValue 0.000001
 
 @interface LXLoadingProgressView : UIView
 
 @property (strong,nonatomic) UIColor *progressViewColor;
 @property (strong,nonatomic) UIColor *trackColor;
 @property (strong,nonatomic) UIColor *trackPointColor;
-@property (assign,nonatomic) CGFloat progress;
+@property (nonatomic) float progress;
 
 + (instancetype)progressView;
 

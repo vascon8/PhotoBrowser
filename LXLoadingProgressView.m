@@ -17,6 +17,7 @@
 {
     if (self = [super init]) {
         self.backgroundColor = [UIColor clearColor];
+        self.progress = 0.0;
     }
     return self;
 }
@@ -50,12 +51,13 @@
     CGContextFillPath(context);
     
     [self.trackPointColor setFill];
-    CGContextAddEllipseInRect(context, CGRectMake(center.x - pathWidth/2, 0, pathWidth, pathWidth));
+    CGContextAddArc(context, center.x, center.y, pathWidth, M_2_PI, -M_2_PI, NO);
     CGContextFillPath(context);
     
+    [self.trackColor setFill];
     CGContextAddEllipseInRect(context, CGRectMake(progressX - pathWidth/2, progressY - pathWidth/2, pathWidth, pathWidth));
     CGContextFillPath(context);
-    
+        
     CGContextSetBlendMode(context, kCGBlendModeClear);
     CGContextAddEllipseInRect(context, CGRectMake(center.x-smallRadius, center.y-smallRadius, smallRadius*2.0, smallRadius*2.0));
 	CGContextFillPath(context);
@@ -71,7 +73,7 @@
 - (UIColor *)trackColor
 {
     if (!_trackColor) {
-        _trackColor = [UIColor colorWithRed:180.0 green:180.0 blue:180.0 alpha:1.0];
+        _trackColor = [UIColor colorWithRed:208.0 green:230.0 blue:196.0 alpha:1.0];
     }
     return _trackColor;
 }
@@ -82,8 +84,9 @@
     }
     return _trackPointColor;
 }
-- (void)setProgress:(CGFloat)progress
+- (void)setProgress:(float)progress
 {
+    if (progress > 1.0) progress = 1.0;
     _progress = progress;
     [self setNeedsDisplay];
 }

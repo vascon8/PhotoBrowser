@@ -5,13 +5,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "LXLoadingView.h"
 
 @class LXPhotoBrowserView;
 @class LXPhotoBrowserModel;
 
+#define kPhotoBrowserViewAniShowDur 0.4f
+#define kPhotoBrowserViewAniExitDur 0.4f
+
 @protocol LXPhotoBrowserViewDelegate <NSObject>
 
 - (void)photoBrowserView:(LXPhotoBrowserView *)photoBrowserView animationShowWithFrame:(CGRect)frame;
+- (void)photoBrowserViewDidExit:(LXPhotoBrowserView *)photoBrowserView;
 
 @end
 
@@ -21,6 +26,8 @@
 @property (strong,nonatomic) UIImageView *imgView;
 @property (assign,nonatomic) BOOL isAnimation;
 @property (assign,nonatomic) BOOL isLoading;
+@property (weak,nonatomic) LXLoadingView *loadingView;
+
 @property (weak,nonatomic)id<LXPhotoBrowserViewDelegate,UIScrollViewDelegate>delegate;
 
 @end
