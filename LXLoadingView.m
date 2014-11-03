@@ -53,6 +53,7 @@
 - (void)removeFailureLabel
 {
     [self.failureLabel removeFromSuperview];
+    [self removeFromSuperview];
 }
 - (void)showFailure
 {
@@ -61,7 +62,7 @@
     label.bounds = CGRectMake(0.0, 0.0, self.bounds.size.width, 20.0);
     label.center = self.center;
     [label setBackgroundColor:[UIColor clearColor]];
-    [label setTextColor:[UIColor whiteColor]];
+    [label setTextColor:[UIColor lightGrayColor]];
     [label setTextAlignment:NSTextAlignmentCenter];
     [label setFont:[UIFont systemFontOfSize:18.0]];
     

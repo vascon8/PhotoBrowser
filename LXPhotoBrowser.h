@@ -25,5 +25,6 @@
 - (void)showPhoto;
 - (void)showPhotoAtPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation;
 - (void)enqueueReuseablePhotoBrowserViewWithCurrengPage:(NSInteger)currentPage;
+- (NSArray *)availablePageNo;
 
 @end

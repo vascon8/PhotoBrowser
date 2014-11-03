@@ -10,8 +10,8 @@
 @class LXPhotoBrowserView;
 @class LXPhotoBrowserModel;
 
-#define kPhotoBrowserViewAniShowDur 0.4f
-#define kPhotoBrowserViewAniExitDur 0.4f
+#define kPhotoBrowserViewAniShowDur 0.3f
+#define kPhotoBrowserViewAniExitDur 0.3f
 
 @protocol LXPhotoBrowserViewDelegate <NSObject>
 
@@ -29,5 +29,7 @@
 @property (weak,nonatomic) LXLoadingView *loadingView;
 
 @property (weak,nonatomic)id<LXPhotoBrowserViewDelegate,UIScrollViewDelegate>delegate;
+
+- (void)resetPhotoBrowserView;
 
 @end

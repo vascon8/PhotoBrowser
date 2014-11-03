@@ -75,14 +75,30 @@
     }
     return pView;
 }
+
 - (void)enqueueReuseablePhotoBrowserViewWithCurrengPage:(NSInteger)currentPage
 {
     self.currentIndex = currentPage;
+    NSInteger nextPage = currentPage+1;
+    NSInteger prePage = currentPage-1;
+    if (nextPage>_photoList.count-1)    nextPage = _photoList.count-1;
+    if (prePage<0)  prePage = 0;
     
     [_visiblePhotoBrowserViewDict enumerateKeysAndObjectsUsingBlock:^(id key,LXPhotoBrowserView *pView, BOOL *stop) {
-        if (![key isEqualToValue:@(currentPage)]) {
+        if (![key isEqualToValue:@(currentPage)]){
+//            if ([key isEqualToValue:@(prePage)] || [key isEqualToValue:@(nextPage)]){
+//                [pView resetPhotoBrowserView];
+//                NSLog(@"%@ %d %d %d",key,prePage,currentPage,nextPage);
+//            }
+//            if (![key isEqualToValue:@(prePage)] && ![key isEqualToValue:@(nextPage)]){
+//                [_reuseablePhotoBrowserViewSet addObject:pView];
+//                [_visiblePhotoBrowserViewDict removeObjectForKey:key];
+//                [pView removeFromSuperview];
+//                NSLog(@"--------%@ %d %d %d",key,prePage,currentPage,nextPage);
+//            }
             [_reuseablePhotoBrowserViewSet addObject:pView];
             [_visiblePhotoBrowserViewDict removeObjectForKey:key];
+            pView.zoomScale = pView.minimumZoomScale;
             [pView removeFromSuperview];
         }
     }];
@@ -111,7 +127,8 @@
 }
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
 {
-    self.scrollEnabled = !self.scrollEnabled;
+//    self.scrollEnabled = !self.scrollEnabled;
+    NSLog(@"endzoom:%f",scrollView.zoomScale);
 }
 - (void)photoBrowserViewDidExit:(LXPhotoBrowserView *)photoBrowserView
 {
@@ -159,5 +176,9 @@
         LXPhotoBrowserModel *model = photoList[i];
         model.index = i;
     }
+}
+- (NSArray *)availablePageNo
+{
+    return [_visiblePhotoBrowserViewDict allKeys];
 }
 @end

@@ -14,6 +14,7 @@
     BOOL _singleTap;
     BOOL _doubleTap;
     CGPoint _imgZoomCenter;
+    CGRect _resetFrame;
 }
 
 @end
@@ -53,7 +54,16 @@
     }
     else{
         _imgZoomCenter = _imgView.center;
-        [self setZoomScale:self.maximumZoomScale animated:YES];
+        _resetFrame = _imgView.frame;
+        
+        CGPoint tapPoint = [recognizer locationInView:self];
+        
+        CGRect rect = (CGRect){tapPoint,{1.0,1.0}};
+        rect.size.width = self.bounds.size.width / self.maximumZoomScale;
+        rect.size.height = self.bounds.size.height / self.maximumZoomScale;
+        rect.origin.x = tapPoint.x - (rect.size.width/2.0);
+        rect.origin.y = tapPoint.y - (rect.size.height/2.0);
+        [self zoomToRect:rect animated:YES];
         
         CGFloat contentH = self.contentSize.height;
         CGFloat contentW = self.contentSize.width;
@@ -142,6 +152,11 @@
         imgH = imgH*delta;
     }
     
+    self.minimumZoomScale = 1.0;
+    self.maximumZoomScale = 2.0;
+    self.zoomScale = self.minimumZoomScale;
+    NSLog(@"%f %d",self.zoomScale,self.photoModel.index);
+    
     CGRect tempFrame = CGRectMake(0, 0, imgW, imgH);
     tempFrame.origin.x = (viewW-imgW)/2.0;
     if (imgH<viewH) {
@@ -159,13 +174,22 @@
     else{
         _imgView.frame = tempFrame;
         self.contentOffset = CGPointZero;
-        
-        self.maximumZoomScale = 2.0;
-        self.minimumZoomScale = 1.0;
     }
     if (!self.isLoading) {
         self.isLoading = YES;
         [self loadImageWithProgressView];
+    }
+}
+- (void)resetPhotoBrowserView
+{
+//    [_imgView setImage:self.photoModel.image];
+//    self.zoomScale = self.minimumZoomScale;
+//    _imgView.center = _imgZoomCenter;
+////    _imgView.frame = _resetFrame;
+//    [self adjustFrame];
+    if (self.zoomScale == self.maximumZoomScale) {
+        [self setZoomScale:self.minimumZoomScale];
+        _imgView.center = _imgZoomCenter;
     }
 }
 - (void)dealloc

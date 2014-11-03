@@ -17,6 +17,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
+        self.backgroundColor =[UIColor blackColor];
         [self setupImageButton];
     }
     return self;

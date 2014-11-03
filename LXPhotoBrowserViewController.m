@@ -15,7 +15,6 @@
 @property (assign,nonatomic,getter = isShowStatusBar) BOOL      showStatusBar;
 
 @property (weak,nonatomic) UIView                               *originView;
-//@property (assign,nonatomic) NSInteger              photoCount;
 @end
 
 @implementation LXPhotoBrowserViewController
@@ -45,7 +44,8 @@
     
     CGFloat W = self.view.bounds.size.width;
     CGFloat H = self.view.bounds.size.height;
-    CGRect frame = CGRectMake(0.0, H-40.0, W, 30.0);
+    CGFloat toolBarH = 30.0;
+    CGRect frame = CGRectMake(0.0, H-toolBarH, W, toolBarH);
     toolBar.frame = frame;
     toolBar.photoCount = photoCount;
     toolBar.currentPhotoIndex = currentPage;
@@ -55,7 +55,9 @@
 - (void)showPhotoBrowserInRect:(CGRect)rect withPhotoList:(NSArray *)photoList photoIndex:(NSInteger)photoIndex originView:(UIView *)originView
 {
     self.view.frame = rect;
-    self.photoBrowser.frame = self.view.bounds;
+    CGFloat toolBarH = 30.0;
+    self.photoBrowser.frame = CGRectMake(0.0, 0.0, self.view.bounds.size.width, self.view.bounds.size.height-toolBarH);
+    
     self.photoBrowser.backgroundColor = [UIColor blackColor];
     self.photoBrowser.currentIndex = photoIndex;
     self.photoBrowser.photoList = photoList;
@@ -104,14 +106,13 @@
     if (nextPage > photoBrowser.photoList.count-1) {
         nextPage = photoBrowser.photoList.count-1;
     }
-    if (currentPage<0) {
-        currentPage=0;
-    }
+    
     for (NSInteger i=currentPage; i<=nextPage; i++) {
         [self.photoBrowser showPhotoAtPage:i withAnimation:NO];
     }
     
-    _toolBar.currentPhotoIndex = currentPage;
+    CGFloat floatV = photoBrowser.contentOffset.x/photoBrowser.frame.size.width;
+    _toolBar.currentPhotoIndex = floatV+0.5;
 }
 - (void)scrollViewDidEndDecelerating:(LXPhotoBrowser *)photoBrowser
 {
