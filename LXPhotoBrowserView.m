@@ -14,7 +14,6 @@
     BOOL _singleTap;
     BOOL _doubleTap;
     CGPoint _imgZoomCenter;
-    CGRect _resetFrame;
 }
 
 @end
@@ -32,6 +31,7 @@
         
         self.showsVerticalScrollIndicator = NO;
         self.showsHorizontalScrollIndicator = NO;
+        self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         
         UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(doubleTap:)];
         doubleTap.numberOfTapsRequired = 2;
@@ -54,11 +54,10 @@
     }
     else{
         _imgZoomCenter = _imgView.center;
-        _resetFrame = _imgView.frame;
         
         CGPoint tapPoint = [recognizer locationInView:self];
         
-        CGRect rect = (CGRect){tapPoint,{1.0,1.0}};
+        CGRect rect;
         rect.size.width = self.bounds.size.width / self.maximumZoomScale;
         rect.size.height = self.bounds.size.height / self.maximumZoomScale;
         rect.origin.x = tapPoint.x - (rect.size.width/2.0);
@@ -107,6 +106,7 @@
     LXLoadingView *loadingV = [LXLoadingView loadingView];
     [self addSubview:loadingV];
     self.loadingView = loadingV;
+    self.loadingView.center = CGPointMake(self.bounds.size.width/2.0,self.bounds.size.height/2.0);
     [loadingV showLoading];
     
     __weak LXPhotoBrowserView *pView = self;
@@ -135,12 +135,16 @@
 {
     if (!_imgView.image) return;
     
-    CGFloat viewW = self.frame.size.width;
-    CGFloat viewH = self.frame.size.height;
+    CGFloat viewW = self.bounds.size.width;
+    CGFloat viewH = self.bounds.size.height;
     CGFloat imgW =  _imgView.image.size.width;
     CGFloat imgH = _imgView.image.size.height;
     
-    if (!self.isLoading && !_photoModel.image) {
+    self.maximumZoomScale = 2.0;
+    self.minimumZoomScale = 1.0;
+    self.zoomScale = 1.0;
+    
+    if (!_photoModel.image) {
         CGFloat scale = viewW / imgW;
         imgW = viewW;
         imgH = viewH / scale;
@@ -152,20 +156,12 @@
         imgH = imgH*delta;
     }
     
-    self.minimumZoomScale = 1.0;
-    self.maximumZoomScale = 2.0;
-    self.zoomScale = self.minimumZoomScale;
-    NSLog(@"%f %d",self.zoomScale,self.photoModel.index);
-    
     CGRect tempFrame = CGRectMake(0, 0, imgW, imgH);
     tempFrame.origin.x = (viewW-imgW)/2.0;
     if (imgH<viewH) {
         tempFrame.origin.y = (viewH-imgH)/2.0;
     }
-    else
-    {
-        self.contentSize = CGSizeMake(viewW, imgH);
-    }
+    self.contentSize = tempFrame.size;
     
     if (self.isAnimation && [self.delegate respondsToSelector:@selector(photoBrowserView:animationShowWithFrame:)]) {
         [self.delegate photoBrowserView:self animationShowWithFrame:tempFrame];
@@ -175,25 +171,15 @@
         _imgView.frame = tempFrame;
         self.contentOffset = CGPointZero;
     }
-    if (!self.isLoading) {
+    if (!self.isLoading && !_photoModel.image) {
         self.isLoading = YES;
         [self loadImageWithProgressView];
     }
 }
-- (void)resetPhotoBrowserView
-{
-//    [_imgView setImage:self.photoModel.image];
-//    self.zoomScale = self.minimumZoomScale;
-//    _imgView.center = _imgZoomCenter;
-////    _imgView.frame = _resetFrame;
-//    [self adjustFrame];
-    if (self.zoomScale == self.maximumZoomScale) {
-        [self setZoomScale:self.minimumZoomScale];
-        _imgView.center = _imgZoomCenter;
-    }
-}
+
 - (void)dealloc
 {
     [_imgView cancelCurrentImageLoad];
 }
+
 @end

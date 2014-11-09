@@ -23,13 +23,12 @@
 @interface LXPhotoBrowserView : UIScrollView
 
 @property (strong,nonatomic) LXPhotoBrowserModel *photoModel;
-@property (strong,nonatomic) UIImageView *imgView;
+@property (weak,nonatomic) UIImageView *imgView;
 @property (assign,nonatomic) BOOL isAnimation;
 @property (assign,nonatomic) BOOL isLoading;
 @property (weak,nonatomic) LXLoadingView *loadingView;
 
 @property (weak,nonatomic)id<LXPhotoBrowserViewDelegate,UIScrollViewDelegate>delegate;
-
-- (void)resetPhotoBrowserView;
+- (void)adjustFrame;
 
 @end

@@ -27,6 +27,7 @@
         
         self.showsVerticalScrollIndicator = NO;
         self.pagingEnabled = YES;
+        self.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
     }
     return self;
 }
@@ -46,13 +47,11 @@
     pView.isAnimation = YES;
     pView.photoModel = _photoList[0];
 }
-- (void)showPhotoAtPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation
+- (void)loadPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation adjustF:(BOOL)adjustF
 {
     LXPhotoBrowserView *pView = _visiblePhotoBrowserViewDict[@(pageNo)];
     if (!pView) {
         pView = [self dequeueReusablePhotoBrowserView];
-        [self addSubview:pView];
-        [_visiblePhotoBrowserViewDict setObject:pView forKey:@(pageNo)];
         
         CGFloat W = self.bounds.size.width;
         CGFloat H = self.bounds.size.height;
@@ -60,7 +59,26 @@
         pView.frame = frame;
         pView.isAnimation = isAnimation;
         pView.photoModel = _photoList[pageNo];
+        
+        [self addSubview:pView];
+        [_visiblePhotoBrowserViewDict setObject:pView forKey:@(pageNo)];
     }
+    else{
+        if (adjustF) {
+           [pView adjustFrame];
+        }
+    }
+}
+- (void)showPhotoAtPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation
+{
+    [self loadPage:pageNo withAnimation:isAnimation adjustF:NO];
+    
+    NSInteger prePage = pageNo-1;
+    NSInteger nextPage = pageNo+1;
+    if (prePage<0) prePage=0;
+    if (nextPage>_photoList.count-1) nextPage = _photoList.count-1;
+    if (prePage != pageNo) [self loadPage:prePage withAnimation:NO adjustF:YES];
+    if (nextPage != pageNo) [self loadPage:nextPage withAnimation:NO adjustF:YES];
 }
 #pragma mark - reuse photoBrowserView
 - (LXPhotoBrowserView *)dequeueReusablePhotoBrowserView
@@ -78,30 +96,26 @@
 
 - (void)enqueueReuseablePhotoBrowserViewWithCurrengPage:(NSInteger)currentPage
 {
-    self.currentIndex = currentPage;
+    if (currentPage == _currentIndex) return;
+    _currentIndex = currentPage;
+    
     NSInteger nextPage = currentPage+1;
     NSInteger prePage = currentPage-1;
     if (nextPage>_photoList.count-1)    nextPage = _photoList.count-1;
     if (prePage<0)  prePage = 0;
     
     [_visiblePhotoBrowserViewDict enumerateKeysAndObjectsUsingBlock:^(id key,LXPhotoBrowserView *pView, BOOL *stop) {
-        if (![key isEqualToValue:@(currentPage)]){
-//            if ([key isEqualToValue:@(prePage)] || [key isEqualToValue:@(nextPage)]){
-//                [pView resetPhotoBrowserView];
-//                NSLog(@"%@ %d %d %d",key,prePage,currentPage,nextPage);
-//            }
-//            if (![key isEqualToValue:@(prePage)] && ![key isEqualToValue:@(nextPage)]){
-//                [_reuseablePhotoBrowserViewSet addObject:pView];
-//                [_visiblePhotoBrowserViewDict removeObjectForKey:key];
-//                [pView removeFromSuperview];
-//                NSLog(@"--------%@ %d %d %d",key,prePage,currentPage,nextPage);
-//            }
-            [_reuseablePhotoBrowserViewSet addObject:pView];
-            [_visiblePhotoBrowserViewDict removeObjectForKey:key];
-            pView.zoomScale = pView.minimumZoomScale;
-            [pView removeFromSuperview];
+        if (![key isEqualToValue:@(currentPage)] && ![key isEqualToValue:@(prePage)] && ![key isEqualToValue:@(nextPage)]){
+                [_reuseablePhotoBrowserViewSet addObject:pView];
+                [_visiblePhotoBrowserViewDict removeObjectForKey:key];
+                [pView removeFromSuperview];
         }
     }];
+    
+    while (_reuseablePhotoBrowserViewSet.count>2) {
+        LXPhotoBrowserView *pView = [_reuseablePhotoBrowserViewSet anyObject];
+        [_reuseablePhotoBrowserViewSet removeObject:pView];
+    }
 }
 #pragma mark - photoBrowserView delegate
 - (void)photoBrowserView:(LXPhotoBrowserView *)photoBrowserView animationShowWithFrame:(CGRect)frame
@@ -124,11 +138,6 @@
         LXPhotoBrowserView *pView = _visiblePhotoBrowserViewDict[@(_currentIndex)];
         return pView.imgView;
     }
-}
-- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
-{
-//    self.scrollEnabled = !self.scrollEnabled;
-    NSLog(@"endzoom:%f",scrollView.zoomScale);
 }
 - (void)photoBrowserViewDidExit:(LXPhotoBrowserView *)photoBrowserView
 {
@@ -176,9 +185,5 @@
         LXPhotoBrowserModel *model = photoList[i];
         model.index = i;
     }
-}
-- (NSArray *)availablePageNo
-{
-    return [_visiblePhotoBrowserViewDict allKeys];
 }
 @end

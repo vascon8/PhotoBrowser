@@ -7,6 +7,7 @@
 #import "LXPhotoBrowserViewController.h"
 #import "LXPhotoBrowser.h"
 #import "LXPhotoBrowserToolBar.h"
+#import "LXPhotoBrowserView.h"
 
 @interface LXPhotoBrowserViewController ()<UIScrollViewDelegate,LXPhotoBrowserDelegate>
 
@@ -101,23 +102,21 @@
 #pragma mark - scrollView delegate
 - (void)scrollViewDidScroll:(LXPhotoBrowser *)photoBrowser
 {
-    NSInteger currentPage = photoBrowser.contentOffset.x/photoBrowser.frame.size.width;
-    NSInteger nextPage = currentPage+1;
-    if (nextPage > photoBrowser.photoList.count-1) {
-        nextPage = photoBrowser.photoList.count-1;
-    }
+    CGFloat W = photoBrowser.bounds.size.width;
+    CGFloat offsetX = photoBrowser.contentOffset.x;
     
-    for (NSInteger i=currentPage; i<=nextPage; i++) {
-        [self.photoBrowser showPhotoAtPage:i withAnimation:NO];
-    }
-    
-    CGFloat floatV = photoBrowser.contentOffset.x/photoBrowser.frame.size.width;
+    CGFloat floatV = offsetX / W;
     _toolBar.currentPhotoIndex = floatV+0.5;
+    
+    CGFloat delta = fabsf(offsetX - photoBrowser.currentIndex * W);
+    if (delta < W)    return;
+    
+    NSInteger currentPage = offsetX / W;
+    [self.photoBrowser showPhotoAtPage:currentPage withAnimation:NO];
 }
 - (void)scrollViewDidEndDecelerating:(LXPhotoBrowser *)photoBrowser
 {
     NSInteger currentPage = photoBrowser.contentOffset.x/photoBrowser.frame.size.width;
-    
     [photoBrowser enqueueReuseablePhotoBrowserViewWithCurrengPage:currentPage];
 }
 #pragma mark - private
