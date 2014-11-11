@@ -19,7 +19,7 @@
 @end
 
 @implementation LXPhotoBrowserViewController
-#pragma mark - load view
+#pragma mark - lifecycle
 -(void)loadView
 {
     self.view = [[UIView alloc]initWithFrame:[UIScreen mainScreen].bounds];
@@ -54,6 +54,10 @@
 - (void)restoreStatusBar
 {
     [UIApplication sharedApplication].statusBarHidden = _previousStatusBarHidden;
+}
+- (BOOL)prefersStatusBarHidden
+{
+    return YES;
 }
 #pragma mark - showPhotoBrowser
 - (void)showPhotoBrowserWithPhotoList:(NSArray *)photoList photoIndex:(NSInteger)photoIndex
@@ -127,7 +131,17 @@
     NSInteger currentPage = photoBrowser.contentOffset.x/photoBrowser.frame.size.width;
     [photoBrowser enqueueReuseablePhotoBrowserViewWithCurrengPage:currentPage];
 }
-
+#pragma mark - private
+- (void)cleanup
+{
+    [self scrollViewDidEndDecelerating:self.photoBrowser];
+}
+- (void)didReceiveMemoryWarning
+{
+    [self cleanup];
+    [self.photoBrowser cleanup];
+    [super didReceiveMemoryWarning];
+}
 #pragma mark - rotate
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {

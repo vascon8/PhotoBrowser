@@ -192,5 +192,4 @@
 {
     [_imgView cancelCurrentImageLoad];
 }
-
 @end

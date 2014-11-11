@@ -13,15 +13,17 @@
 {
     NSMutableDictionary *_visiblePhotoBrowserViewDict;
     NSMutableSet        *_reuseablePhotoBrowserViewSet;
+    
+    NSInteger _visibleDictCapacity;
+    NSInteger _reuseableSetCapacity;
 }
 
 @property (weak,nonatomic) LXPhotoBrowserView       *zoomView;
-@property (assign,nonatomic) BOOL previousStatusBarHidden;
 
 @end
 
 @implementation LXPhotoBrowser
-
+#pragma mark - lifecycle
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -33,7 +35,6 @@
     }
     return self;
 }
-
 #pragma mark - show photo
 - (void)showPhoto
 {
@@ -113,13 +114,16 @@
     
     [_visiblePhotoBrowserViewDict enumerateKeysAndObjectsUsingBlock:^(id key,LXPhotoBrowserView *pView, BOOL *stop) {
         if (![key isEqualToValue:@(currentPage)] && ![key isEqualToValue:@(prePage)] && ![key isEqualToValue:@(nextPage)]){
+            if (_reuseablePhotoBrowserViewSet.count < _reuseableSetCapacity) {
                 [_reuseablePhotoBrowserViewSet addObject:pView];
-                [_visiblePhotoBrowserViewDict removeObjectForKey:key];
-                [pView removeFromSuperview];
+            }
+            
+            [_visiblePhotoBrowserViewDict removeObjectForKey:key];
+            [pView removeFromSuperview];
         }
     }];
     
-    while (_reuseablePhotoBrowserViewSet.count>2) {
+    while (_reuseablePhotoBrowserViewSet.count > _reuseableSetCapacity) {
         LXPhotoBrowserView *pView = [_reuseablePhotoBrowserViewSet anyObject];
         [_reuseablePhotoBrowserViewSet removeObject:pView];
     }
@@ -172,15 +176,29 @@
         }
     }];
 }
-
+- (void)cleanup
+{
+    [_visiblePhotoBrowserViewDict enumerateKeysAndObjectsUsingBlock:^(id key, LXPhotoBrowserView *pView, BOOL *stop) {
+        if (![key isEqualToValue:@(_currentIndex)]) {
+            [pView removeFromSuperview];
+            [_visiblePhotoBrowserViewDict removeObjectForKey:key];
+        }
+    }];
+}
 #pragma mark - private
 - (void)setPhotoList:(NSArray *)photoList
 {
     _photoList = photoList;
+    NSInteger count = photoList.count;
     
-    if (photoList.count > 1) {
-        _visiblePhotoBrowserViewDict = [NSMutableDictionary dictionaryWithCapacity:2];
-        _reuseablePhotoBrowserViewSet = [NSMutableSet setWithCapacity:1];
+    if (count > 1) {
+        _visibleDictCapacity = (count>2) ? 3 : 2;
+        _visiblePhotoBrowserViewDict = [NSMutableDictionary dictionaryWithCapacity:_visibleDictCapacity];
+        
+        if (count > 2) {
+            _reuseableSetCapacity = 1;
+            _reuseablePhotoBrowserViewSet = [NSMutableSet setWithCapacity:_reuseableSetCapacity];
+        }
     }
     
     for (int i=0; i<photoList.count; i++) {
