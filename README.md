@@ -6,8 +6,8 @@ PhotoBrowser
         LXPhotoBrowserModel *model = [[LXPhotoBrowserModel alloc]init];
         LXPhotoImageView *imageView = self.subviews[i];
         model.srcImageView = imageView;
-        NSString *photoUrl = [self.photos[i][@"thumbnail_pic"] stringByReplacingOccurrencesOfString:@"thumbnail" withString:@"bmiddle"];
+        NSString *photoUrl = [self.photos[i][@"thumbnail_pic"]];
         model.urlString = photoUrl;
         [arr addObject:model];
     }
-    [controller showPhotoBrowserInRect:[UIScreen mainScreen].applicationFrame withPhotoList:arr photoIndex:recognizer.view.tag originView:self];
+    [controller showPhotoBrowserWithPhotoList:arr photoIndex:recognizer.view.tag];
