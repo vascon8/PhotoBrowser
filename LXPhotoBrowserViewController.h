@@ -21,6 +21,6 @@
 @property (weak,nonatomic) id<LXPhotoBrowserViewControllerDelegate>delegate;
 @property (weak,nonatomic) UIScrollView *originScrollView;
 
-- (void)showPhotoBrowserInRect:(CGRect)rect withPhotoList:(NSArray *)photoList photoIndex:(NSInteger)photoIndex originView:(UIView *)originView;
+- (void)showPhotoBrowserWithPhotoList:(NSArray *)photoList photoIndex:(NSInteger)photoIndex;
 
 @end

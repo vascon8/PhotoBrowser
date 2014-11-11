@@ -86,7 +86,7 @@
 }
 - (void)setProgress:(float)progress
 {
-    if (progress > 1.0) progress = 1.0;
+    if (progress >= 1.0) progress = 0.9;
     _progress = progress;
     [self setNeedsDisplay];
 }

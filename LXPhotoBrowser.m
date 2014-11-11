@@ -7,6 +7,7 @@
 #import "LXPhotoBrowser.h"
 #import "LXPhotoBrowserView.h"
 #import "LXPhotoBrowserModel.h"
+
 @interface LXPhotoBrowser () <LXPhotoBrowserViewDelegate,UIScrollViewDelegate>
 
 {
@@ -15,6 +16,7 @@
 }
 
 @property (weak,nonatomic) LXPhotoBrowserView       *zoomView;
+@property (assign,nonatomic) BOOL previousStatusBarHidden;
 
 @end
 
@@ -24,13 +26,14 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        
+        self.backgroundColor = [UIColor colorWithWhite:(51.0 / 255.0) alpha:1.0];
         self.showsVerticalScrollIndicator = NO;
         self.pagingEnabled = YES;
         self.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
     }
     return self;
 }
+
 #pragma mark - show photo
 - (void)showPhoto
 {
@@ -40,45 +43,50 @@
     self.zoomView = pView;
     _currentIndex = 0;
     
-    CGFloat W = self.bounds.size.width;
-    CGFloat H = self.bounds.size.height;
-    CGRect frame = CGRectMake(0.0, 0.0, W, H);
+    CGRect frame = self.bounds;
+    frame.size.width -= 2*kLXPhotoViewPagePadding;
+    frame.origin.x = kLXPhotoViewPagePadding;
+    
     pView.frame = frame;
     pView.isAnimation = YES;
     pView.photoModel = _photoList[0];
+    pView.canLoading = YES;
 }
-- (void)loadPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation adjustF:(BOOL)adjustF
+- (void)showPhotoAtPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation
+{
+    [self loadPage:pageNo withAnimation:isAnimation adjustF:NO canLoading:YES];
+    
+    NSInteger prePage = pageNo-1;
+    NSInteger nextPage = pageNo+1;
+    if (prePage<0) prePage=0;
+    if (nextPage>_photoList.count-1) nextPage = _photoList.count-1;
+    if (prePage != pageNo) [self loadPage:prePage withAnimation:NO adjustF:YES canLoading:NO];
+    if (nextPage != pageNo) [self loadPage:nextPage withAnimation:NO adjustF:YES canLoading:NO];
+}
+- (void)loadPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation adjustF:(BOOL)adjustF canLoading:(BOOL)canLoading
 {
     LXPhotoBrowserView *pView = _visiblePhotoBrowserViewDict[@(pageNo)];
     if (!pView) {
         pView = [self dequeueReusablePhotoBrowserView];
         
-        CGFloat W = self.bounds.size.width;
-        CGFloat H = self.bounds.size.height;
-        CGRect frame = CGRectMake(W*pageNo, 0.0, W, H);
+        CGRect frame = self.bounds;
+        frame.size.width -= 2*kLXPhotoViewPagePadding;
+        frame.origin.x = self.bounds.size.width*pageNo + kLXPhotoViewPagePadding;
+        
         pView.frame = frame;
         pView.isAnimation = isAnimation;
         pView.photoModel = _photoList[pageNo];
         
         [self addSubview:pView];
         [_visiblePhotoBrowserViewDict setObject:pView forKey:@(pageNo)];
+        
     }
     else{
-        if (adjustF) {
+        if (adjustF && !canLoading) {
            [pView adjustFrame];
         }
     }
-}
-- (void)showPhotoAtPage:(NSInteger)pageNo withAnimation:(BOOL)isAnimation
-{
-    [self loadPage:pageNo withAnimation:isAnimation adjustF:NO];
-    
-    NSInteger prePage = pageNo-1;
-    NSInteger nextPage = pageNo+1;
-    if (prePage<0) prePage=0;
-    if (nextPage>_photoList.count-1) nextPage = _photoList.count-1;
-    if (prePage != pageNo) [self loadPage:prePage withAnimation:NO adjustF:YES];
-    if (nextPage != pageNo) [self loadPage:nextPage withAnimation:NO adjustF:YES];
+    pView.canLoading = canLoading;
 }
 #pragma mark - reuse photoBrowserView
 - (LXPhotoBrowserView *)dequeueReusablePhotoBrowserView
@@ -93,7 +101,6 @@
     }
     return pView;
 }
-
 - (void)enqueueReuseablePhotoBrowserViewWithCurrengPage:(NSInteger)currentPage
 {
     if (currentPage == _currentIndex) return;
@@ -144,11 +151,8 @@
     if ([self.delegate respondsToSelector:@selector(photoBrowserBeforeExit:)]) {
         [self.delegate photoBrowserBeforeExit:self];
     }
-    [photoBrowserView.loadingView removeFromSuperview];
     
     if (photoBrowserView.isLoading) {
-        [photoBrowserView removeFromSuperview];
-        [self removeFromSuperview];
         if ([self.delegate respondsToSelector:@selector(photoBrowserDidExit:)]) {
             [self.delegate photoBrowserDidExit:self];
         }
@@ -163,8 +167,6 @@
         [photoBrowserView.imgView setFrame:[photoBrowserView.photoModel.srcImageView convertRect:photoBrowserView.photoModel.srcImageView.bounds toView:photoBrowserView]];
         [self setBackgroundColor:[UIColor clearColor]];
     } completion:^(BOOL finished) {
-        [photoBrowserView removeFromSuperview];
-        [self removeFromSuperview];
         if ([self.delegate respondsToSelector:@selector(photoBrowserDidExit:)]) {
             [self.delegate photoBrowserDidExit:self];
         }

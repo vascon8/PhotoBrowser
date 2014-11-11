@@ -17,10 +17,7 @@
 {
     return [self.srcImageView convertRect:self.srcImageView.bounds toView:Nil];
 }
-//- (UIImage *)placeHolder
-//{
-//    return self.srcImageView.image;
-//}
+
 - (UIImage *)capture:(UIView *)view
 {
     UIGraphicsBeginImageContextWithOptions(view.bounds.size, YES, 0.0);

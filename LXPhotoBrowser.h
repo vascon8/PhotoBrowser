@@ -6,6 +6,8 @@
 
 #import <UIKit/UIKit.h>
 
+#define kLXPhotoViewPagePadding 10.0
+
 @class LXPhotoBrowser;
 
 @protocol LXPhotoBrowserDelegate <NSObject>

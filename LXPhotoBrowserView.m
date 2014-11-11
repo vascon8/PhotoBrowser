@@ -16,6 +16,7 @@
     CGPoint _imgZoomCenter;
 }
 
+@property (weak,nonatomic) LXLoadingView *loadingView;
 @end
 
 @implementation LXPhotoBrowserView
@@ -24,14 +25,15 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
+        self.backgroundColor = [UIColor clearColor];
+        self.showsVerticalScrollIndicator = NO;
+        self.showsHorizontalScrollIndicator = NO;
+        self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        
         UIImageView *imgView = [[UIImageView alloc]init];
         [self addSubview:imgView];
         imgView.contentMode = UIViewContentModeScaleAspectFill;
         _imgView = imgView;
-        
-        self.showsVerticalScrollIndicator = NO;
-        self.showsHorizontalScrollIndicator = NO;
-        self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         
         UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(doubleTap:)];
         doubleTap.numberOfTapsRequired = 2;
@@ -47,6 +49,9 @@
 - (void)doubleTap:(UITapGestureRecognizer *)recognizer
 {
     _doubleTap = YES;
+    if (self.isLoading || !_photoModel.image) return;
+    
+    self.userInteractionEnabled = NO;
     
     if (self.zoomScale == self.maximumZoomScale) {
         [self setZoomScale:self.minimumZoomScale animated:YES];
@@ -74,6 +79,8 @@
         
         _imgView.center = CGPointMake(W/2.0, H/2.0);
     }
+    
+    self.userInteractionEnabled = YES;
 }
 - (void)singleTap:(UITapGestureRecognizer *)recognizer
 {
@@ -84,6 +91,7 @@
 - (void)handleSingleTap
 {
     if (_doubleTap) return;
+    self.userInteractionEnabled = NO;
     if ([self.delegate respondsToSelector:@selector(photoBrowserViewDidExit:)]) {
         [self.delegate photoBrowserViewDidExit:self];
     }
@@ -171,12 +179,15 @@
         _imgView.frame = tempFrame;
         self.contentOffset = CGPointZero;
     }
-    if (!self.isLoading && !_photoModel.image) {
+}
+- (void)setCanLoading:(BOOL)canLoading
+{
+    _canLoading = canLoading;
+    if (canLoading && !self.isLoading && !_photoModel.image) {
         self.isLoading = YES;
         [self loadImageWithProgressView];
     }
 }
-
 - (void)dealloc
 {
     [_imgView cancelCurrentImageLoad];

@@ -6,7 +6,7 @@
 
 #import "LXPhotoBrowserToolBar.h"
 #import "LXPhotoBrowserModel.h"
-#import "MBProgressHUD+LX.h"
+#import "MBProgressHUD+MJ.h"
 
 @interface LXPhotoBrowserToolBar ()
 @end
@@ -17,6 +17,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
+        self.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
         self.backgroundColor =[UIColor blackColor];
         [self setupImageButton];
     }
