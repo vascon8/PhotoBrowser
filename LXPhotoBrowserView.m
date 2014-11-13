@@ -111,6 +111,9 @@
 }
 - (void)loadImageWithProgressView
 {
+    if (self.isLoading || _photoModel.image) return;
+    self.isLoading = YES;
+    
     LXLoadingView *loadingV = [LXLoadingView loadingView];
     [self addSubview:loadingV];
     self.loadingView = loadingV;
@@ -184,7 +187,6 @@
 {
     _canLoading = canLoading;
     if (canLoading && !self.isLoading && !_photoModel.image) {
-        self.isLoading = YES;
         [self loadImageWithProgressView];
     }
 }

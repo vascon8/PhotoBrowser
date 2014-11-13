@@ -10,8 +10,8 @@
 @class LXPhotoBrowserView;
 @class LXPhotoBrowserModel;
 
-#define kPhotoBrowserViewAniShowDur 0.3f
-#define kPhotoBrowserViewAniExitDur 0.3f
+#define kPhotoBrowserViewAniShowDur 0.15f
+#define kPhotoBrowserViewAniExitDur 0.15f
 
 @protocol LXPhotoBrowserViewDelegate <NSObject>
 

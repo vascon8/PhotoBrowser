@@ -110,6 +110,12 @@
 - (void)photoBrowserBeforeExit:(LXPhotoBrowser *)photoBrowser
 {
     [_toolBar removeFromSuperview];
+    
+    UIView *placeHolder = [[UIView alloc]init];
+    placeHolder.backgroundColor = [UIColor whiteColor];
+    LXPhotoBrowserModel *model = photoBrowser.photoList[photoBrowser.currentIndex];
+    placeHolder.frame = model.srcFrame;
+    [self.view insertSubview:placeHolder belowSubview:self.photoBrowser];
 }
 #pragma mark - scrollView delegate
 - (void)scrollViewDidScroll:(LXPhotoBrowser *)photoBrowser
