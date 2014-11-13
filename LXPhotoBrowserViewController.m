@@ -144,8 +144,8 @@
 }
 - (void)didReceiveMemoryWarning
 {
-    [self cleanup];
     [self.photoBrowser cleanup];
+    [self cleanup];
     [super didReceiveMemoryWarning];
 }
 #pragma mark - rotate

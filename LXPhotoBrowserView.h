@@ -31,5 +31,6 @@
 
 @property (weak,nonatomic)id<LXPhotoBrowserViewDelegate,UIScrollViewDelegate>delegate;
 - (void)adjustFrame;
+- (void)cleanup;
 
 @end

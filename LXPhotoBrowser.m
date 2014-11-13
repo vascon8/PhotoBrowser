@@ -187,6 +187,7 @@
 {
     [_visiblePhotoBrowserViewDict enumerateKeysAndObjectsUsingBlock:^(id key, LXPhotoBrowserView *pView, BOOL *stop) {
         if (![key isEqualToValue:@(_currentIndex)]) {
+            [pView cleanup];
             [pView removeFromSuperview];
             [_visiblePhotoBrowserViewDict removeObjectForKey:key];
         }

@@ -190,8 +190,13 @@
         [self loadImageWithProgressView];
     }
 }
+- (void)cleanup
+{
+    [_loadingView removeFromSuperview];
+    [_imgView cancelCurrentImageLoad];
+}
 - (void)dealloc
 {
-    [_imgView cancelCurrentImageLoad];
+    [self cleanup];
 }
 @end
