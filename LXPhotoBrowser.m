@@ -134,7 +134,6 @@
     CGRect srcFrame = photoBrowserView.photoModel.srcFrame;
     photoBrowserView.imgView.frame = srcFrame;
     
-    NSLog(@"%f %f",frame.size.height,photoBrowserView.bounds.size.height);
     if (frame.size.height > photoBrowserView.bounds.size.height) {
         photoBrowserView.imgView.frame = frame;
         photoBrowserView.photoModel.srcImageView.image = photoBrowserView.photoModel.placeHolder;
